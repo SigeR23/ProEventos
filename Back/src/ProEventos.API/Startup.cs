@@ -10,6 +10,8 @@ using ProEventos.Application.Contratos;
 using ProEventos.Persistence;
 using ProEventos.Persistence.Contextos;
 using ProEventos.Persistence.Contratos;
+using AutoMapper;
+using System;
 
 namespace ProEventos.API
 {
@@ -33,7 +35,7 @@ namespace ProEventos.API
             services.AddScoped<IEventoService, EventoService>();
             services.AddScoped<IGeralPersistence, GeralPersistence>();
             services.AddScoped<IEventoPersistence, EventoPersistence>();
-
+            services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
             services.AddCors();
             services.AddSwaggerGen(c =>
             {
