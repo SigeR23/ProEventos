@@ -5,6 +5,7 @@ import { NgxSpinnerService } from 'ngx-spinner';
 import { ToastrService } from 'ngx-toastr';
 import { EventoService } from '@app/services/evento.service';
 import { Evento } from 'src/models/Evento';
+import { HttpErrorResponse } from '@angular/common/http';
 
 @Component({
   selector: 'app-evento-lista',
@@ -18,6 +19,7 @@ export class EventoListaComponent {
   public marginImg = 2;
   public imgIsCollapsed = false;
   public modalRef!: BsModalRef;
+  public eventoId: number = 0
   private _filtro = '';
 
   public get filtro() : string {
@@ -39,12 +41,27 @@ export class EventoListaComponent {
 
   public ngOnInit(): void {
     this.spinner.show();
-    this.getEventos();
+    this.carregarEventos();
   }
 
   public confirm(): void {
-    this.toastr.success("O evento foi deletado com sucesso", "Deletado!");
     this.modalRef.hide();
+    this.spinner.show();
+    this.eventoService.deleteEvento(this.eventoId).subscribe({
+      next: (result: any) => {
+        if (result.message === 'Deletado') {
+          this.toastr.success("O evento foi deletado com sucesso", "Deletado!");
+          this.spinner.hide();
+          this.carregarEventos();
+        }
+      },
+      error: (error: HttpErrorResponse) => {
+        this.toastr.error(`Erro ao tentar deletar o evento ${this.eventoId}:`, 'Erro');
+        console.log(error);
+        this.spinner.hide();
+      },
+      complete: () => {}
+    });
   }
 
   public decline(): void {
@@ -61,7 +78,7 @@ export class EventoListaComponent {
     return this.eventos.filter((e: { tema: string; local: string; }) => e.tema.toLocaleLowerCase().indexOf(filtrarPor) !== -1 || e.local.toLocaleLowerCase().indexOf(filtrarPor) !== -1);
   }
 
-  public getEventos(): void {
+  public carregarEventos(): void {
     this.eventoService.getEventos().subscribe({
 
       next: (eventos: Evento[]) => {
@@ -78,7 +95,9 @@ export class EventoListaComponent {
     });
   }
 
-  public openModal(template: TemplateRef<any>): void {
+  public openModal(event: MouseEvent, template: TemplateRef<any>, eventoId: number): void {
+    event.stopPropagation();
+    this.eventoId = eventoId;
     this.modalRef = this.modalService.show(template, {class: 'modal-sm'});
   }
 
